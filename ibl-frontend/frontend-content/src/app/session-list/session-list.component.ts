@@ -1,14 +1,16 @@
-import { Component, OnInit, OnDestroy, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, ngAfterViewInit, ViewChild, Input } from '@angular/core';
 import { FormControl, FormGroup, FormArray, AbstractControl} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, tap } from 'rxjs/operators';
 import { MatPaginator, MatTableDataSource, MatSort, MatTreeNestedDataSource } from '@angular/material';
 import { AllSessionsService } from './all-sessions.service';
 import { FilterStoreService } from '../filter-store.service';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { NestedTreeControl } from '@angular/cdk/tree';
+import { SessionDataSource } from './SessionDataSource';
+import { SessionsService } from './SessionsService';
 
 
 enum Sex {
@@ -31,7 +33,7 @@ interface BrainTreeNode {
   templateUrl: './session-list.component.html',
   styleUrls: ['./session-list.component.css']
 })
-export class SessionListComponent implements OnInit, OnDestroy {
+export class SessionListComponent implements OnInit, OnDestroy, ngAfterViewInit {
   session_filter_form = new FormGroup({
     task_protocol: new FormControl(),
     session_uuid: new FormControl(),
@@ -85,6 +87,8 @@ export class SessionListComponent implements OnInit, OnDestroy {
   pageIndex: number;
   pageSize = 25;
   pageSizeOptions: number[] = [10, 25, 50, 100];
+  session:SessionListComponent;
+  dataSourceNew: SessionDataSource;
 
   // for brain region tree selector
   brainRegionTree;
@@ -113,8 +117,9 @@ export class SessionListComponent implements OnInit, OnDestroy {
   private sessionMenuSubscription: Subscription;
   private allSessionMenuSubscription: Subscription;
   private reqSessionsSubscription: Subscription;
+  sessionsService: SessionsService;
 
-  constructor(private route: ActivatedRoute, private router: Router, public allSessionsService: AllSessionsService, public filterStoreService: FilterStoreService) {
+  constructor(private route: ActivatedRoute, private router: Router, public allSessionsService: AllSessionsService, public filterStoreService: FilterStoreService, sessionsService: SessionsService) {
     this.treeDataSource.data = this.brainRegionTree
     // Initalized the material table
     this.dataSource = new MatTableDataSource<any>();
@@ -123,6 +128,11 @@ export class SessionListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   ngOnInit() {
+
+    this.session = this.route.snapshot.data["session"]
+    this.dataSourceNew = new SessionDataSource(this.sessionsService);
+    this.dataSourceNew.loadSessions('', 'asc', 0, 10)
+    
     this.isLoading = true;
     this.initialLoad = true;
 
@@ -318,6 +328,23 @@ export class SessionListComponent implements OnInit, OnDestroy {
       this.treeControl.dataNodes = this.treeDataSource.data;
       this.buildLookup();
     })
+  }
+
+  ngAfterViewInit() {
+    this.paginator.page
+        .pipe(
+            tap(() => this.loadSessionsPage())
+        )
+        .subscribe();
+  }  
+
+  loadSessionsPage() {
+    this.dataSource.loadSessions(
+      '',
+      'asc',
+      this.paginator.pageIndex,
+      this.paginator.pageSize
+    );
   }
   
   ngOnDestroy() {

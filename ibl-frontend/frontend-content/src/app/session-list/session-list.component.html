@@ -321,8 +321,8 @@
     </table>
     </div>
 
-    <mat-paginator [pageSize]="pageSize"
-                [pageSizeOptions]="pageSizeOptions"
+    <mat-paginator [pageSize]="10"
+                [pageSizeOptions]="[10, 15, 20]"
                 showFirstLastButtons (page)="storeTableInfo($event)"></mat-paginator>
   </div>
 </div>

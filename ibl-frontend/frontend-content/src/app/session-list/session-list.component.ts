@@ -386,6 +386,11 @@ export class SessionListComponent implements OnInit, OnDestroy {
           newObject["__page"] = this.paginator.pageIndex + 1;
           newObject["__limit"] = this.paginator.pageSize;
           newObject["__order"] = this.sort.active + ' ' + this.sort.direction
+          newObject["__ephys"] = this.hideMissingEphys
+          newObject["__missingPlots"] = this.hideMissingPlots
+          newObject["__NG4BrainMap"] = this.hideNG4BrainMap
+          newObject["__NotReady4Delay"] = this.hideNotReady4Delay
+         
           return this.sessionService!.getSessions(
               newObject)
             .pipe(catchError(() => observableOf(null)));
@@ -1164,25 +1169,25 @@ export class SessionListComponent implements OnInit, OnDestroy {
   toggleNplotStatus() {
     // hide or show sessions that have missing session plots
     this.hideMissingPlots = !this.hideMissingPlots;
-    this.updateSelection();
+    // this.updateSelection();
   }
   ​
   toggleNprobeStatus() {
     // hide or show sessions that have missing ephys data (based on existence of probe insertion)
     this.hideMissingEphys = !this.hideMissingEphys;
-    this.updateSelection();
+    // this.updateSelection();
   }
 
   toggleG4BMviewStatus() {
     // hide or show sessions that are not good enough for brain map
     this.hideNG4BrainMap = !this.hideNG4BrainMap;
-    this.updateSelection();
+    // this.updateSelection();
   }
 
   toggleR4DviewStatus() {
     // hide or show session that are not ready for delay
     this.hideNotReady4Delay = !this.hideNotReady4Delay;
-    this.updateSelection();
+    // this.updateSelection();
   }
 
   //==**==**==**==**+=**+== [START] brain tree functions **==**==**==**==**==**==**==**==**==**+=//

@@ -174,17 +174,33 @@ def do_req(subpath):
     limit = int(request.values['__limit']) if '__limit' in values else None
     order = request.values['__order'] if '__order' in values else 'KEY ASC'
     page = int(request.values['__page']) if '__page' in values else 1
-    ephys = request.values['__ephys'] if '__ephys' in values else False
-    missingPlots = request.values['__missingPlots'] if '__missingPlots' in values else None
-    NG4BrainMap = request.values['__NG4BrainMap'] if '__NG4BrainMap' in values else None
-    NotReady4Delay = request.values['__NotReady4Delay'] if '__NotReady4Delay' in values else None
+    nprobe = request.values['nprobe'] if 'nprobe' in values else None
+    nplot = request.values['nplot'] if 'nplot' in values else None
+    good_enough_for_brainwide_map = request.values['good_enough_for_brainwide_map'] if 'good_enough_for_brainwide_map' in values else None
+    training_status = request.values['training_status'] if 'training_status' in values else None
     proj = json.loads(request.values['__proj']) if '__proj' in values else None
     special_fields = ['__json', '__limit', '__order', '__proj', '__json_kwargs', 
-    '__page', '__ephys', '__missingPlots', '__NG4BrainMap', '__NotReady4Delay']
+    '__page']
     for a in (k for k, v in values.items() if k not in special_fields and v):
         # HACK: 'uuid' attrs -> UUID type (see also: datajoint-python #594)
-        postargs[a] = UUID(values[a]) if 'uuid' in a else values[a]
+        # if a == "nprobe":
+        #     print(f'\n\nThe value for nprobe: {values[a]}\n\n')
+        #     # postargs[a] = 
+        # elif a == "nplot":
+        #     print(f'\n\nThe value for nplot: {values[a]}\n\n')
+        # elif a == "training_status":
+        #     print(f'\n\nThe value for training_session: {values[a]}\n\n')
+        # elif a == "good_enough_for_brainwide_map":
+        #     print(f'\n\nThe value for good_enough_for_brainwide_map: {values[a]}\n\n')
+        # elif a == "uuid":
+        #     postargs[a] = UUID(values[a])
+        # else:
+        postargs[a] = values[a]
+    print(f'\nThis the conents of args: {postargs}\n', flush=True) 
+    #args = list(dict.items(postargs)) if len(postargs) else []
     args = [postargs] if len(postargs) else []
+    #print out the contents within args
+    print(f'\nThis the conents of args: {args}\n', flush=True) 
     if '__json' in values:
         jsonargs = json.loads(request.values['__json'])
         args += jsonargs if type(jsonargs) == list else [jsonargs]
@@ -278,6 +294,7 @@ def handle_q(subpath, args, proj, fetch_args=None, **kwargs):
               subject.SubjectLab() * subject.SubjectUser() * trainingStatus) & args & brain_restriction)
         q = q.proj(*proj) if proj else q
         dj.conn().query("SET SESSION max_join_size={}".format('18446744073709551615'))
+        print(f'These are the possible values for good_enough_for_brainwide_map: {dj.U("good_enough_for_brainwide_map") & q}', flush=True)
         ret_count = len(q)
         ret = q.fetch(**fetch_args)
         dj.conn().query("SET SESSION max_join_size={}".format(original_max_join_size))

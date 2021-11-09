@@ -348,7 +348,29 @@ export class SessionListComponent implements OnInit, OnDestroy {
           let filter = Object.assign({}, this.session_filter_form.getRawValue());
           let newFilter = JSON.stringify(filter)
 
+          if(this.hideMissingPlots){
+            filter["nplot"] = 1
+          }
+
+          if(this.hideNG4BrainMap){
+            filter["good_enough_for_brainwide_map"] = 1
+          }
+
+          if(this.hideNotReady4Delay){
+            filter["training_status"] = "ready4delay"
+          }
+
+          if(this.hideMissingEphys){
+            filter["__json"] = '["nprobe>0"]'
+          }
+
+          // filter["nprobe"] = this.hideMissingEphys
+          // filter["nplot"] = this.hideMissingPlots
+          // filter["good_enough_for_brainwide_map"] = this.hideNG4BrainMap
+          // filter["training_status"] = this.hideNotReady4Delay
+
           for (const [key, value] of Object.entries(filter)) {
+            console.log(`\n\nWhat is the key? -> ${key}\nwhat is the value? -> ${value}`)
             if(key == 'sex'){
               if(value[0] == true){
                 newObject[key] = 'F'
@@ -377,6 +399,31 @@ export class SessionListComponent implements OnInit, OnDestroy {
                 continue
               }
             }
+            console.log(`key = ${key}`)
+            // if(key == 'nplot'){
+            //   if(value){
+            //     console.log(`\n\nwhat is the value in nprobe, nplot, and good_enough ${value}\n\n`)
+            //     newObject[key] = 1
+            //     continue
+            //   }
+            //   else {
+            //     console.log(`\n\nwhat is the value in nprobe, nplot, and good_enough ${value}\n\n`)
+            //     // newObject[key] = 0
+            //     continue
+            //   }
+            // }
+            // if(key == 'good_enough_for_brainwide_map'){
+            //   if(value){
+            //     console.log(`\n\nwhat is the value in nprobe, nplot, and good_enough ${value}\n\n`)
+            //     newObject[key] = 1
+            //     continue
+            //   }
+            //   else{
+            //     console.log(`\n\nwhat is the value in nprobe, nplot, and good_enough ${value}\n\n`)
+            //     // newObject[key] = 0
+            //     continue
+            //   }
+            // }
             if(value !== null){
               newObject[key] = value
             }
@@ -386,10 +433,11 @@ export class SessionListComponent implements OnInit, OnDestroy {
           newObject["__page"] = this.paginator.pageIndex + 1;
           newObject["__limit"] = this.paginator.pageSize;
           newObject["__order"] = this.sort.active + ' ' + this.sort.direction
-          newObject["__ephys"] = this.hideMissingEphys
-          newObject["__missingPlots"] = this.hideMissingPlots
-          newObject["__NG4BrainMap"] = this.hideNG4BrainMap
-          newObject["__NotReady4Delay"] = this.hideNotReady4Delay
+
+          for (const prop in newObject) {
+            console.log(`\n\n${prop}: ${newObject[prop]}\n\n`)
+          }
+          
          
           return this.sessionService!.getSessions(
               newObject)
